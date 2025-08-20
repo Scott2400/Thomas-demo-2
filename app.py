@@ -1,33 +1,38 @@
 import streamlit as st
 import pandas as pd
 
-st.title("Thomas Engine – Skim/Scoop Demo")
+st.title("Thomas Portfolio Builder")
 
-uploaded_file = st.file_uploader("Upload your portfolio CSV", type="csv")
-cash = st.number_input("Available Cash ($)", min_value=0, value=10000, step=100)
-run = st.button("Run Thomas Engine")
+st.write("Answer a few questions and we'll generate a starter portfolio designed for skim/scoop logic.")
 
-if uploaded_file and run:
-    df = pd.read_csv(uploaded_file)
-    if not all(col in df.columns for col in ["Symbol", "Shares", "CostBasis", "CurrentPrice", "DividendYield"]):
-        st.error("Missing required columns.")
-    else:
-        st.subheader("Thomas Actions")
-        for _, row in df.iterrows():
-            symbol = row["Symbol"]
-            shares = row["Shares"]
-            cost_basis = row["CostBasis"]
-            price = row["CurrentPrice"]
-            gain = (price - cost_basis) / cost_basis if cost_basis else 0
+age = st.slider("How old are you?", 18, 80, 45)
+income_focus = st.selectbox("Primary goal?", ["Maximize income", "Balanced", "Long-term growth"])
+risk = st.selectbox("Risk tolerance?", ["Low", "Medium", "High"])
+monthly_cash_goal = st.number_input("Monthly Cash Flow Goal ($)", value=500)
 
-            if price > cost_basis and gain >= 0:
-                proceeds = shares * price
-                if proceeds >= 10:
-                    st.write(f"{symbol}: Skim — Selling {shares} @ ${price:.2f} for ${proceeds:.2f}")
-                else:
-                    st.write(f"{symbol}: Note — Skim skipped, proceeds ${proceeds:.2f} < $10 minimum")
-            elif price < cost_basis and cash >= 10:
-                buy_shares = round(10 / price, 2)
-                st.write(f"{symbol}: Scoop — Buying {buy_shares} @ ${price:.2f}")
-            else:
-                st.write(f"{symbol}: No action")
+run = st.button("Build Portfolio")
+
+if run:
+    allocations = []
+    if income_focus == "Maximize income":
+        allocations = [
+            {"Symbol": "PDI", "Shares": 200, "CostBasis": 19.50, "CurrentPrice": 19.50, "DividendYield": 0.145},
+            {"Symbol": "AGNC", "Shares": 150, "CostBasis": 10.00, "CurrentPrice": 10.00, "DividendYield": 0.14},
+            {"Symbol": "JEPQ", "Shares": 100, "CostBasis": 55.00, "CurrentPrice": 55.00, "DividendYield": 0.11},
+        ]
+    elif income_focus == "Balanced":
+        allocations = [
+            {"Symbol": "JEPQ", "Shares": 100, "CostBasis": 55.00, "CurrentPrice": 55.00, "DividendYield": 0.11},
+            {"Symbol": "VYM", "Shares": 80, "CostBasis": 105.00, "CurrentPrice": 105.00, "DividendYield": 0.035},
+            {"Symbol": "O", "Shares": 50, "CostBasis": 60.00, "CurrentPrice": 60.00, "DividendYield": 0.06},
+        ]
+    else:  # Long-term growth
+        allocations = [
+            {"Symbol": "VTI", "Shares": 60, "CostBasis": 240.00, "CurrentPrice": 240.00, "DividendYield": 0.015},
+            {"Symbol": "SCHD", "Shares": 75, "CostBasis": 72.00, "CurrentPrice": 72.00, "DividendYield": 0.038},
+            {"Symbol": "JEPQ", "Shares": 40, "CostBasis": 55.00, "CurrentPrice": 55.00, "DividendYield": 0.11},
+        ]
+    df = pd.DataFrame(allocations)
+    st.write("### Suggested Portfolio")
+    st.dataframe(df)
+    st.download_button("Download Portfolio CSV", df.to_csv(index=False), file_name="portfolio.csv")

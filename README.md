@@ -1,29 +1,17 @@
-# Thomas Engine – GitHub Version
+# Thomas Portfolio Builder
 
-This is a GitHub-deployable demo of the Thomas Skim/Scoop logic engine.
+This app generates a starter investment portfolio based on user goals, designed for the skim/scoop strategy.
 
-## 🧾 Instructions
+## 💡 How to Use
 
-1. Upload a `.csv` with the following columns:
-   - `Symbol`, `Shares`, `CostBasis`, `CurrentPrice`, `DividendYield`
+1. Answer 4 quick questions about age, goal, risk, and income need
+2. Click **Build Portfolio**
+3. View your suggested holdings
+4. Download a CSV that plugs into the Thomas Engine
 
-2. Enter available cash (e.g. 10000)
-
-3. Click **Run Thomas Engine** to see suggested skims/scoops.
-
-## 🔧 Setup locally
+## 📦 Setup
 
 ```bash
 pip install -r requirements.txt
 streamlit run app.py
 ```
-
-## ✅ Skim Logic
-
-- Skim if price > cost basis and gain ≥ 0%
-- Skip if proceeds < $10
-
-## ✅ Scoop Logic
-
-- Scoop if price < cost basis and you have at least $10 cash
-- Always buy $10 worth
