@@ -1,20 +1,76 @@
 import streamlit as st
 import pandas as pd
 
-st.set_page_config(page_title="Thomas – What Can I Do for You?", layout="centered")
-st.title("🧠 Thomas – What Can I Do for You Today?")
+st.set_page_config(page_title="Thomas App", layout="centered")
 
-option = st.radio("Choose an option:", [
+st.sidebar.title("What do you want Thomas to help you with?")
+page = st.sidebar.radio("Choose a page", [
     "🔵 I already have a portfolio",
     "🟢 Help me build one",
-    "🟠 I'm curious about a specific stock"
+    "🟠 I'm curious about a specific stock",
+    "📋 Summary"
 ])
 
-if option == "🔵 I already have a portfolio":
-    st.subheader("Tell me what you own")
+if page == "🟢 Help me build one":
+    st.title("🟢 Help Me Build a Portfolio")
+    total_amount = st.number_input("How much money do you have available to invest right now?", min_value=0, step=1000)
+    account_type = st.radio("What type of account will you be using?", ["Regular taxable account", "Qualified retirement account", "Both"])
+    monthly_income_goal = st.number_input("How much additional monthly income would you like to generate?", min_value=0, step=100)
+
+    if total_amount > 0 and monthly_income_goal > 0:
+        st.markdown("---")
+        st.subheader("📊 Suggested Starter Portfolio")
+        if total_amount < 250_000:
+            portfolio = [
+                {"Symbol": "JEPQ", "Allocation": 0.5, "EstYield": 0.11},
+                {"Symbol": "PDI", "Allocation": 0.3, "EstYield": 0.14},
+                {"Symbol": "AGNC", "Allocation": 0.2, "EstYield": 0.13}
+            ]
+        elif total_amount < 750_000:
+            portfolio = [
+                {"Symbol": "JEPQ", "Allocation": 0.3, "EstYield": 0.11},
+                {"Symbol": "PDI", "Allocation": 0.25, "EstYield": 0.14},
+                {"Symbol": "AGNC", "Allocation": 0.2, "EstYield": 0.13},
+                {"Symbol": "SCHD", "Allocation": 0.15, "EstYield": 0.035},
+                {"Symbol": "VYM", "Allocation": 0.1, "EstYield": 0.038}
+            ]
+        else:
+            portfolio = [
+                {"Symbol": "JEPQ", "Allocation": 0.2, "EstYield": 0.11},
+                {"Symbol": "PDI", "Allocation": 0.15, "EstYield": 0.14},
+                {"Symbol": "AGNC", "Allocation": 0.1, "EstYield": 0.13},
+                {"Symbol": "SCHD", "Allocation": 0.2, "EstYield": 0.035},
+                {"Symbol": "VYM", "Allocation": 0.15, "EstYield": 0.038},
+                {"Symbol": "O", "Allocation": 0.1, "EstYield": 0.06},
+                {"Symbol": "VTI", "Allocation": 0.1, "EstYield": 0.015}
+            ]
+
+        total_annual_income = 0
+        for asset in portfolio:
+            dollars = total_amount * asset["Allocation"]
+            income = dollars * asset["EstYield"]
+            total_annual_income += income
+            st.write(f"{asset['Symbol']}: Invest ${dollars:,.0f}, Est. income: ${income:,.0f}/yr")
+
+        total_monthly = total_annual_income / 12
+        st.markdown(f"### 💵 Estimated Monthly Income: **${total_monthly:,.0f}**")
+
+        if total_monthly < monthly_income_goal:
+            shortfall = monthly_income_goal - total_monthly
+            st.error(f"You're projected to generate ${total_monthly:,.0f}/mo — that's ${shortfall:,.0f} below your target of ${monthly_income_goal:,.0f}/mo.")
+            st.markdown("Thomas can help you explore ways to close this gap by adjusting expectations, reallocating funds, or increasing your investable assets.")
+        elif total_monthly > monthly_income_goal:
+            surplus = total_monthly - monthly_income_goal
+            st.success(f"You're projected to generate ${total_monthly:,.0f}/mo — that's ${surplus:,.0f} above your target!")
+        else:
+            st.info("Your portfolio is projected to hit your monthly income goal exactly.")
+    else:
+        st.info("Please enter both your total investable amount and your income goal to continue.")
+
+elif page == "🔵 I already have a portfolio":
+    st.title("🔵 I Already Have a Portfolio")
     rows = st.number_input("How many different holdings do you want to enter?", min_value=1, max_value=10, value=3)
     portfolio = []
-
     for i in range(int(rows)):
         st.markdown("---")
         st.markdown(f"**Asset {i+1}**")
@@ -48,41 +104,8 @@ if option == "🔵 I already have a portfolio":
             else:
                 st.write(f"{symbol}: Based on holdings, Thomas can likely generate monthly income with this asset.")
 
-elif option == "🟢 Help me build one":
-    st.subheader("Let’s design your starter portfolio")
-    amount = st.number_input("How much money do you want to invest?", min_value=1000, step=500)
-    goal = st.selectbox("Primary goal", ["Monthly income", "Some growth + some income", "Long-term capital growth"])
-
-    if st.button("Build My Portfolio"):
-        st.markdown("### 🧱 Starter Portfolio")
-        if goal == "Monthly income":
-            data = [
-                {"Symbol": "JEPQ", "Allocation": 0.5, "EstYield": 0.11},
-                {"Symbol": "PDI", "Allocation": 0.3, "EstYield": 0.14},
-                {"Symbol": "AGNC", "Allocation": 0.2, "EstYield": 0.13}
-            ]
-        elif goal == "Some growth + some income":
-            data = [
-                {"Symbol": "SCHD", "Allocation": 0.4, "EstYield": 0.035},
-                {"Symbol": "JEPQ", "Allocation": 0.3, "EstYield": 0.11},
-                {"Symbol": "VYM", "Allocation": 0.3, "EstYield": 0.038}
-            ]
-        else:
-            data = [
-                {"Symbol": "VTI", "Allocation": 0.5, "EstYield": 0.015},
-                {"Symbol": "SCHD", "Allocation": 0.3, "EstYield": 0.035},
-                {"Symbol": "JEPQ", "Allocation": 0.2, "EstYield": 0.11}
-            ]
-        total_income = 0
-        for item in data:
-            dollars = amount * item["Allocation"]
-            income = dollars * item["EstYield"]
-            total_income += income
-            st.write(f"{item['Symbol']}: Invest ${dollars:,.0f}, Est. income: ${income:,.0f}/yr")
-        st.markdown(f"**💵 Estimated Total Income: ${total_income:,.0f} / year**")
-
-elif option == "🟠 I'm curious about a specific stock":
-    st.subheader("Enter a stock you're curious about")
+elif page == "🟠 I'm curious about a specific stock":
+    st.title("🟠 I'm Curious About a Stock")
     symbol = st.text_input("Stock ticker")
     if symbol:
         sym = symbol.upper()
@@ -99,3 +122,11 @@ elif option == "🟠 I'm curious about a specific stock":
         else:
             st.error("1 – Not optimized for Skim/Scoop")
             st.write("This asset may not support reliable income through Thomas.")
+
+elif page == "📋 Summary":
+    st.title("📋 Summary")
+    st.markdown("You’ve now seen how Thomas can:")
+    st.markdown("- Build a portfolio from scratch")
+    st.markdown("- Estimate income from your existing holdings")
+    st.markdown("- Evaluate any ticker with the TomScore")
+    st.markdown("More features coming soon!")
